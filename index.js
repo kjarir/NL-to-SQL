@@ -131,11 +131,24 @@ app.post('/api/ask', async (req, res) => {
       console.log('SQL QUERY FROM GEMINI:', sql);
       try {
         const { rows } = await pool.query(sql);
+        // Force chartData to always be { name, value }
+        let chartData = rows;
+        if (Array.isArray(rows) && rows.length > 0) {
+          const first = rows[0];
+          // Find the name/label key
+          const nameKey = Object.keys(first).find(k => k.toLowerCase().includes('name')) || Object.keys(first)[0];
+          // Find the first numeric value key that is not the name key
+          const valueKey = Object.keys(first).find(k => k !== nameKey && typeof first[k] === 'number') || Object.keys(first)[1];
+          chartData = rows.map(row => ({
+            name: row[nameKey] ? String(row[nameKey]) : '',
+            value: row[valueKey] || row.value || row.total || row.revenue || 0
+          }));
+        }
         return res.json({
           answer: explanation,
           sql: sql,
           chart: chart,
-          data: rows
+          data: chartData
         });
       } catch (err) {
         lastError = err;

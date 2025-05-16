@@ -8,13 +8,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from 'framer-motion';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#e57373', '#ba68c8', '#ffd54f', '#4fc3f7'];
+const COLORS = [
+  '#FF0000', // Red
+  '#0000FF', // Blue
+  '#FFCE56', // Yellow
+  '#4BC0C0', // Teal
+  '#2ecc40', // Green
+  '#9966FF', // Purple
+  '#FF9F40', // Orange
+  '#FFCD56', // Light Yellow
+  '#C9CBCF', // Gray
+  '#FF4444', // Bright Red
+  '#00C49F', // Greenish
+  '#FFD700', // Gold
+];
 const PLACEHOLDER_DATA = [
-  { name: 'Electronics', value: 100 },
-  { name: 'Clothing', value: 80 },
-  { name: 'Books', value: 60 },
-  { name: 'Home', value: 40 },
-  { name: 'Sports', value: 20 }
+  { name: 'Alice Smith', value: 1200 },
+  { name: 'Bob', value: 950 },
+  { name: 'Charlie', value: 800 },
+  { name: 'David', value: 700 },
+  { name: 'Eva', value: 600 }
 ];
 
 interface ResultDisplayProps {
@@ -57,103 +70,123 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
   }
 
   const renderChart = () => {
-    // Use placeholder if no data or all values are zero/empty
-    const isEmpty = !result.chartData || !result.chartType || !Array.isArray(result.chartData) || result.chartData.length === 0 || result.chartData.every((d: any) => Object.values(d).every((v) => v === 0 || v === null || v === undefined || v === ''));
+    // Use placeholder if no data, all values are zero/empty, or less than 3 data points
+    const isEmpty = !result.chartData || !result.chartType || !Array.isArray(result.chartData) || result.chartData.length < 3 || result.chartData.every((d: any) => Object.values(d).every((v) => v === 0 || v === null || v === undefined || v === ''));
     const chartData = isEmpty ? PLACEHOLDER_DATA : result.chartData;
     const chartType = result.chartType || 'bar';
-    const valueKey = isEmpty ? 'value' : Object.keys(chartData[0] || {}).find(k => k !== 'name') || 'value';
 
-    switch (chartType) {
-      case 'bar':
-        return (
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={chartData} barCategoryGap={isEmpty ? 60 : 20}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" tick={{ fill: '#374151', fontWeight: 500 }}>
-                <Label value="Category" offset={-5} position="insideBottom" style={{ fill: '#6366f1', fontWeight: 600 }} />
-              </XAxis>
-              <YAxis tick={{ fill: '#374151', fontWeight: 500 }}>
-                <Label value="Value" angle={-90} position="insideLeft" style={{ fill: '#6366f1', fontWeight: 600 }} />
-              </YAxis>
-              <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }} />
-              <Legend />
-              {chartData.map((entry, idx) => (
-                <Bar
-                  key={entry.name}
-                  dataKey={valueKey}
-                  fill={COLORS[idx % COLORS.length]}
-                  radius={[10, 10, 0, 0]}
-                  isAnimationActive={true}
-                  animationDuration={1200}
-                  background={{ fill: '#f3f4f6' }}
-                  minPointSize={isEmpty ? 20 : 2}
-                  barSize={40}
-                  stroke="#fff"
-                  strokeWidth={2}
-                  opacity={0.95}
-                >
-                  <LabelList dataKey={valueKey} position="top" style={{ fill: COLORS[idx % COLORS.length], fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
-                </Bar>
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        );
-      case 'line':
-        return (
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" tick={{ fill: '#374151', fontWeight: 500 }}>
-                <Label value="Category" offset={-5} position="insideBottom" style={{ fill: '#6366f1', fontWeight: 600 }} />
-              </XAxis>
-              <YAxis tick={{ fill: '#374151', fontWeight: 500 }}>
-                <Label value="Value" angle={-90} position="insideLeft" style={{ fill: '#6366f1', fontWeight: 600 }} />
-              </YAxis>
-              <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey={valueKey}
-                stroke={COLORS[1]}
-                strokeWidth={4}
-                dot={{ r: 7, stroke: COLORS[1], strokeWidth: 2, fill: '#fff', filter: 'drop-shadow(0 2px 4px #6366f1)' }}
-                activeDot={{ r: 12, fill: COLORS[1] }}
-                isAnimationActive={true}
-                animationDuration={1200}
-              >
-                <LabelList dataKey={valueKey} position="top" style={{ fill: COLORS[1], fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
-              </Line>
-            </LineChart>
-          </ResponsiveContainer>
-        );
-      case 'pie':
-        return (
-          <ResponsiveContainer width="100%" height={320}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={(entry) => entry.name}
-                isAnimationActive={true}
-                animationDuration={1200}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-                <LabelList dataKey="value" position="outside" style={{ fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
-              </Pie>
-              <Tooltip contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        );
-      default:
-        return null;
-    }
+    return (
+      <>
+        {isEmpty && (
+          <div className="text-center text-indigo-600 font-semibold mb-2 animate-pulse">
+            (No real data found or not enough data. Showing example chart)
+          </div>
+        )}
+        {(() => {
+          switch (chartType) {
+            case 'bar':
+              return (
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={chartData} barCategoryGap={isEmpty ? 60 : 20}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" tick={{ fill: '#374151', fontWeight: 500 }}>
+                      <Label value="Customer" offset={-5} position="insideBottom" style={{ fill: '#6366f1', fontWeight: 600 }} />
+                    </XAxis>
+                    <YAxis tick={{ fill: '#374151', fontWeight: 500 }}>
+                      <Label value="Value" angle={-90} position="insideLeft" style={{ fill: '#6366f1', fontWeight: 600 }} />
+                    </YAxis>
+                    <Tooltip
+                      cursor={{ fill: '#f3f4f6' }}
+                      contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 16, color: '#222' }}
+                      formatter={(value, name) => [`${value}`, 'Value']}
+                    />
+                    <Legend />
+                    <Bar
+                      dataKey="value"
+                      radius={[10, 10, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1200}
+                      background={{ fill: '#f3f4f6' }}
+                      minPointSize={isEmpty ? 20 : 2}
+                      barSize={40}
+                      stroke="#fff"
+                      strokeWidth={2}
+                      opacity={0.95}
+                    >
+                      {chartData.map((entry, idx) => (
+                        <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />
+                      ))}
+                      <LabelList dataKey="value" position="top" style={{ fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              );
+            case 'line':
+              return (
+                <ResponsiveContainer width="100%" height={320}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" tick={{ fill: '#374151', fontWeight: 500 }}>
+                      <Label value="Category" offset={-5} position="insideBottom" style={{ fill: '#6366f1', fontWeight: 600 }} />
+                    </XAxis>
+                    <YAxis tick={{ fill: '#374151', fontWeight: 500 }}>
+                      <Label value="Value" angle={-90} position="insideLeft" style={{ fill: '#6366f1', fontWeight: 600 }} />
+                    </YAxis>
+                    <Tooltip
+                      cursor={{ fill: '#f3f4f6' }}
+                      contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 16, color: '#222' }}
+                      formatter={(value, name) => [`${value}`, 'Value']}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke={COLORS[1]}
+                      strokeWidth={4}
+                      dot={{ r: 7, stroke: COLORS[1], strokeWidth: 2, fill: '#fff', filter: 'drop-shadow(0 2px 4px #6366f1)' }}
+                      activeDot={{ r: 12, fill: COLORS[1] }}
+                      isAnimationActive={true}
+                      animationDuration={1200}
+                    >
+                      <LabelList dataKey="value" position="top" style={{ fill: COLORS[1], fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
+                    </Line>
+                  </LineChart>
+                </ResponsiveContainer>
+              );
+            case 'pie':
+              return (
+                <ResponsiveContainer width="100%" height={320}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label={(entry) => entry.name}
+                      isAnimationActive={true}
+                      animationDuration={1200}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                      <LabelList dataKey="value" position="outside" style={{ fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', fontWeight: 700, fontSize: 16, color: '#222' }}
+                      formatter={(value, name) => [`${value}`, 'Value']}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              );
+            default:
+              return null;
+          }
+        })()}
+      </>
+    );
   };
 
   return (
