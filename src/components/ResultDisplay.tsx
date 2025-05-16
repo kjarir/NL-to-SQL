@@ -2,13 +2,13 @@ import React from "react";
 import { QueryResult } from "@/types/types";
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label, LabelList
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from 'framer-motion';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#e57373', '#ba68c8', '#ffd54f', '#4fc3f7'];
 const PLACEHOLDER_DATA = [
   { name: 'Electronics', value: 100 },
   { name: 'Clothing', value: 80 },
@@ -61,30 +61,40 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
     const isEmpty = !result.chartData || !result.chartType || !Array.isArray(result.chartData) || result.chartData.length === 0 || result.chartData.every((d: any) => Object.values(d).every((v) => v === 0 || v === null || v === undefined || v === ''));
     const chartData = isEmpty ? PLACEHOLDER_DATA : result.chartData;
     const chartType = result.chartType || 'bar';
+    const valueKey = isEmpty ? 'value' : Object.keys(chartData[0] || {}).find(k => k !== 'name') || 'value';
 
     switch (chartType) {
       case 'bar':
         return (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={chartData} barCategoryGap={isEmpty ? 60 : 20}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name">
-                <Label value="Category" offset={-5} position="insideBottom" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" tick={{ fill: '#374151', fontWeight: 500 }}>
+                <Label value="Category" offset={-5} position="insideBottom" style={{ fill: '#6366f1', fontWeight: 600 }} />
               </XAxis>
-              <YAxis>
-                <Label value="Value" angle={-90} position="insideLeft" />
+              <YAxis tick={{ fill: '#374151', fontWeight: 500 }}>
+                <Label value="Value" angle={-90} position="insideLeft" style={{ fill: '#6366f1', fontWeight: 600 }} />
               </YAxis>
-              <Tooltip />
+              <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }} />
               <Legend />
-              <Bar
-                dataKey={isEmpty ? 'value' : Object.keys(chartData[0] || {}).find(k => k !== 'name') || 'value'}
-                fill={COLORS[0]}
-                radius={[10, 10, 0, 0]}
-                isAnimationActive={true}
-                animationDuration={1200}
-                background={{ fill: '#f3f4f6' }}
-                minPointSize={isEmpty ? 20 : 2}
-              />
+              {chartData.map((entry, idx) => (
+                <Bar
+                  key={entry.name}
+                  dataKey={valueKey}
+                  fill={COLORS[idx % COLORS.length]}
+                  radius={[10, 10, 0, 0]}
+                  isAnimationActive={true}
+                  animationDuration={1200}
+                  background={{ fill: '#f3f4f6' }}
+                  minPointSize={isEmpty ? 20 : 2}
+                  barSize={40}
+                  stroke="#fff"
+                  strokeWidth={2}
+                  opacity={0.95}
+                >
+                  <LabelList dataKey={valueKey} position="top" style={{ fill: COLORS[idx % COLORS.length], fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
+                </Bar>
+              ))}
             </BarChart>
           </ResponsiveContainer>
         );
@@ -92,25 +102,27 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
         return (
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name">
-                <Label value="Category" offset={-5} position="insideBottom" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" tick={{ fill: '#374151', fontWeight: 500 }}>
+                <Label value="Category" offset={-5} position="insideBottom" style={{ fill: '#6366f1', fontWeight: 600 }} />
               </XAxis>
-              <YAxis>
-                <Label value="Value" angle={-90} position="insideLeft" />
+              <YAxis tick={{ fill: '#374151', fontWeight: 500 }}>
+                <Label value="Value" angle={-90} position="insideLeft" style={{ fill: '#6366f1', fontWeight: 600 }} />
               </YAxis>
-              <Tooltip />
+              <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }} />
               <Legend />
               <Line
                 type="monotone"
-                dataKey={isEmpty ? 'value' : Object.keys(chartData[0] || {}).find(k => k !== 'name') || 'value'}
+                dataKey={valueKey}
                 stroke={COLORS[1]}
-                strokeWidth={3}
-                dot={{ r: 6, stroke: COLORS[1], strokeWidth: 2, fill: '#fff' }}
-                activeDot={{ r: 10, fill: COLORS[1] }}
+                strokeWidth={4}
+                dot={{ r: 7, stroke: COLORS[1], strokeWidth: 2, fill: '#fff', filter: 'drop-shadow(0 2px 4px #6366f1)' }}
+                activeDot={{ r: 12, fill: COLORS[1] }}
                 isAnimationActive={true}
                 animationDuration={1200}
-              />
+              >
+                <LabelList dataKey={valueKey} position="top" style={{ fill: COLORS[1], fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
+              </Line>
             </LineChart>
           </ResponsiveContainer>
         );
@@ -129,11 +141,12 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
                 isAnimationActive={true}
                 animationDuration={1200}
               >
-                {chartData.map((_: any, index: number) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
+                <LabelList dataKey="value" position="outside" style={{ fontWeight: 700, fontSize: 16, textShadow: '0 1px 2px #fff' }} />
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
