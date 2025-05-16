@@ -2,13 +2,20 @@ import React from "react";
 import { QueryResult } from "@/types/types";
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+const PLACEHOLDER_DATA = [
+  { name: 'Electronics', value: 100 },
+  { name: 'Clothing', value: 80 },
+  { name: 'Books', value: 60 },
+  { name: 'Home', value: 40 },
+  { name: 'Sports', value: 20 }
+];
 
 interface ResultDisplayProps {
   result: QueryResult | null;
@@ -50,57 +57,69 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
   }
 
   const renderChart = () => {
-    if (!result.chartData || !result.chartType) return null;
+    // Use placeholder if no data or all values are zero/empty
+    const isEmpty = !result.chartData || !result.chartType || !Array.isArray(result.chartData) || result.chartData.length === 0 || result.chartData.every((d: any) => Object.values(d).every((v) => v === 0 || v === null || v === undefined || v === ''));
+    const chartData = isEmpty ? PLACEHOLDER_DATA : result.chartData;
+    const chartType = result.chartType || 'bar';
 
-    switch (result.chartType) {
+    switch (chartType) {
       case 'bar':
         return (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={result.chartData}>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={chartData} barCategoryGap={isEmpty ? 60 : 20}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis dataKey="name">
+                <Label value="Category" offset={-5} position="insideBottom" />
+              </XAxis>
+              <YAxis>
+                <Label value="Value" angle={-90} position="insideLeft" />
+              </YAxis>
               <Tooltip />
               <Legend />
-              {Object.keys(result.chartData[0] || {})
-                .filter(key => key !== 'name')
-                .map((key, index) => (
-                  <Bar key={key} dataKey={key} fill={COLORS[index % COLORS.length]} isAnimationActive={true} animationDuration={1200} />
-                ))}
+              <Bar
+                dataKey={isEmpty ? 'value' : Object.keys(chartData[0] || {}).find(k => k !== 'name') || 'value'}
+                fill={COLORS[0]}
+                radius={[10, 10, 0, 0]}
+                isAnimationActive={true}
+                animationDuration={1200}
+                background={{ fill: '#f3f4f6' }}
+                minPointSize={isEmpty ? 20 : 2}
+              />
             </BarChart>
           </ResponsiveContainer>
         );
       case 'line':
         return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={result.chartData}>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis dataKey="name">
+                <Label value="Category" offset={-5} position="insideBottom" />
+              </XAxis>
+              <YAxis>
+                <Label value="Value" angle={-90} position="insideLeft" />
+              </YAxis>
               <Tooltip />
               <Legend />
-              {Object.keys(result.chartData[0] || {})
-                .filter(key => key !== 'name')
-                .map((key, index) => (
-                  <Line 
-                    key={key} 
-                    type="monotone" 
-                    dataKey={key} 
-                    stroke={COLORS[index % COLORS.length]} 
-                    activeDot={{ r: 8 }} 
-                    isAnimationActive={true}
-                    animationDuration={1200}
-                  />
-                ))}
+              <Line
+                type="monotone"
+                dataKey={isEmpty ? 'value' : Object.keys(chartData[0] || {}).find(k => k !== 'name') || 'value'}
+                stroke={COLORS[1]}
+                strokeWidth={3}
+                dot={{ r: 6, stroke: COLORS[1], strokeWidth: 2, fill: '#fff' }}
+                activeDot={{ r: 10, fill: COLORS[1] }}
+                isAnimationActive={true}
+                animationDuration={1200}
+              />
             </LineChart>
           </ResponsiveContainer>
         );
       case 'pie':
         return (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie
-                data={result.chartData}
+                data={chartData}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
@@ -110,7 +129,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, isLoading, error 
                 isAnimationActive={true}
                 animationDuration={1200}
               >
-                {result.chartData.map((_: any, index: number) => (
+                {chartData.map((_: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
