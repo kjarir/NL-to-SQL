@@ -1,9 +1,13 @@
 import { Pool } from 'pg';
 import axios from 'axios';
 
+// HARDCODED SECRETS (replace with your actual values)
+const SUPABASE_DB_URL = 'postgresql://postgres:jarirbobe@db.nhsblrznakczbtevrrrp.supabase.co:5432/postgres';
+const GEMINI_API_KEY = 'AIzaSyCMHGtSEwUTGwEMskYFqx6l1Fy0bghdcao';
+
 // Initialize PostgreSQL pool with SSL configuration
 const pool = new Pool({
-  connectionString: process.env.SUPABASE_DB_URL,
+  connectionString: SUPABASE_DB_URL,
   ssl: {
     rejectUnauthorized: false // Required for Supabase
   }
@@ -18,8 +22,6 @@ pool.on('error', (err) => {
 async function getDatabaseSchema() {
   try {
     console.log('Attempting to connect to database...');
-    console.log('Connection string:', process.env.SUPABASE_DB_URL ? 'Present' : 'Missing');
-    
     const query = `
       SELECT 
         table_name,
@@ -30,7 +32,6 @@ async function getDatabaseSchema() {
       WHERE table_schema = 'public'
       ORDER BY table_name, ordinal_position;
     `;
-    
     const result = await pool.query(query);
     console.log('Successfully connected to database');
     return result.rows;
@@ -83,7 +84,7 @@ Chart: [chart type]
 async function callGeminiAPI(prompt) {
   try {
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         contents: [{
           parts: [{ text: prompt }]
@@ -112,23 +113,6 @@ export default async function handler(req, res) {
     const { question } = req.body;
     if (!question) {
       return res.status(400).json({ error: 'Question is required' });
-    }
-
-    // Check if environment variables are set
-    if (!process.env.SUPABASE_DB_URL) {
-      console.error('SUPABASE_DB_URL is not set');
-      return res.status(500).json({
-        error: 'Configuration error',
-        details: 'Database connection string is not configured'
-      });
-    }
-
-    if (!process.env.GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY is not set');
-      return res.status(500).json({
-        error: 'Configuration error',
-        details: 'Gemini API key is not configured'
-      });
     }
 
     // Test database connection first
