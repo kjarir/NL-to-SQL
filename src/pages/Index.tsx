@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ChatInterface from "@/components/ChatInterface";
 import ResultDisplay from "@/components/ResultDisplay";
 import Header from "@/components/Header";
