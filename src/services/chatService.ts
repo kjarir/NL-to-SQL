@@ -1,11 +1,13 @@
 import { QueryResult } from "@/types/types";
 import { toast } from "@/hooks/use-toast";
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 // This function processes a natural language query and returns structured data
 export const processChatMessage = async (message: string): Promise<QueryResult> => {
   try {
     // Call the backend API
-    const response = await fetch('/api/ask', {
+    const response = await fetch(`${API_URL}/api/ask`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
