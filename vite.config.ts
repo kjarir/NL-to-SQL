@@ -4,29 +4,39 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+export default defineConfig(({ mode }) => {
+  const isDevelopment = mode === 'development';
+  
+  return {
+    plugins: [
+      react(),
+      isDevelopment && componentTagger(),
+    ].filter(Boolean),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true
-  },
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false
-      }
+    build: {
+      outDir: 'dist',
+      sourcemap: true
+    },
+    server: {
+      port: 5173,
+      proxy: isDevelopment ? {
+        '/api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+          secure: false
+        }
+      } : undefined
+    },
+    define: {
+      'process.env.VITE_API_URL': JSON.stringify(
+        isDevelopment 
+          ? 'http://localhost:3000'
+          : process.env.VITE_API_URL || 'https://your-backend-url.onrender.com'
+      )
     }
-  }
-}));
+  };
+});
