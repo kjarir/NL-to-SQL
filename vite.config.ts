@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
       'process.env.VITE_API_URL': JSON.stringify(
         isDevelopment 
           ? 'http://localhost:3000'
-          : process.env.VITE_API_URL || 'https://your-backend-url.onrender.com'
+          : process.env.VITE_API_URL || 'https://sql-whisperer-backend.onrender.com'
       )
     }
   };

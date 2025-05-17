@@ -19,7 +19,6 @@ export const processChatMessage = async (message: string): Promise<QueryResult> 
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      credentials: 'include',
       body: JSON.stringify({ question: message }),
     });
 
