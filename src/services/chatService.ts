@@ -2,14 +2,20 @@ import { QueryResult } from "@/types/types";
 import { toast } from "@/hooks/use-toast";
 
 // Get the API URL from environment variables
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL;
 const isDevelopment = import.meta.env.DEV;
+
+if (!API_URL && !isDevelopment) {
+  console.error('VITE_API_URL is not set in environment variables');
+}
 
 // This function processes a natural language query and returns structured data
 export const processChatMessage = async (message: string): Promise<QueryResult> => {
   try {
     // In development, use the proxy. In production, use the full URL
     const apiEndpoint = isDevelopment ? '/api/ask' : `${API_URL}/api/ask`;
+    console.log('Environment:', isDevelopment ? 'Development' : 'Production');
+    console.log('API URL:', API_URL);
     console.log('Making API call to:', apiEndpoint);
     
     // Call the backend API
@@ -59,11 +65,21 @@ export const processChatMessage = async (message: string): Promise<QueryResult> 
     };
   } catch (error: any) {
     console.error("Error processing message:", error);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error.message || "Failed to process your request. Please try again."
-    });
+    
+    // Handle CORS errors specifically
+    if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to connect to the server. Please check if the backend service is running and accessible."
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to process your request. Please try again."
+      });
+    }
     
     return {
       summary: "I encountered an error while trying to analyze the data. Please try a different question or check if the database is accessible.",
