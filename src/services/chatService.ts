@@ -1,26 +1,53 @@
 import { QueryResult } from "@/types/types";
 import { toast } from "@/hooks/use-toast";
 
+// Get the API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || '';
+const isDevelopment = import.meta.env.DEV;
 
 // This function processes a natural language query and returns structured data
 export const processChatMessage = async (message: string): Promise<QueryResult> => {
   try {
+    // In development, use the proxy. In production, use the full URL
+    const apiEndpoint = isDevelopment ? '/api/ask' : `${API_URL}/api/ask`;
+    console.log('Making API call to:', apiEndpoint);
+    
     // Call the backend API
-    const response = await fetch(`${API_URL}/api/ask`, {
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify({ question: message }),
     });
 
+    console.log('Response status:', response.status);
+    
+    // Try to get the response text first
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.details || error.error || 'Failed to process your request');
+      let errorMessage;
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.details || errorData.error || 'Failed to process your request';
+      } catch (e) {
+        errorMessage = `Server error (${response.status}): ${responseText}`;
+      }
+      throw new Error(errorMessage);
     }
 
-    const data = await response.json();
+    // Parse the response text as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse JSON:', e);
+      throw new Error('Invalid JSON response from server');
+    }
     
     // Format the response according to the QueryResult interface
     return {
