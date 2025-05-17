@@ -35,8 +35,9 @@ const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/
 
 // Initialize PostgreSQL pool
 const pool = new Pool({
-  connectionString: process.env.SUPABASE_DB_URL || 'postgresql://postgres:jarirbob@db.nhsblrznakczbtevkrrp.supabase.co:5432/postgres'
+  connectionString: 'postgresql://postgres:jarirbob@db.nhsblrznakczbtevkrrp.supabase.co:5432/postgres'
 });
+
 
 // Function to get database schema
 async function getDatabaseSchema() {
