@@ -12,10 +12,7 @@ if (!API_URL && !isDevelopment) {
 // This function processes a natural language query and returns structured data
 export const processChatMessage = async (message: string): Promise<QueryResult> => {
   try {
-    // In development, use the proxy. In production, use the full URL
-    const apiEndpoint = isDevelopment ? '/api/ask' : `${API_URL}/api/ask`;
-    console.log('Environment:', isDevelopment ? 'Development' : 'Production');
-    console.log('API URL:', API_URL);
+    const apiEndpoint = '/api/ask';
     console.log('Making API call to:', apiEndpoint);
     
     // Call the backend API

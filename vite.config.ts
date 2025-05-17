@@ -22,14 +22,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: true
     },
     server: {
-      port: 5173,
-      proxy: isDevelopment ? {
-        '/api': {
-          target: 'http://localhost:3000',
-          changeOrigin: true,
-          secure: false
-        }
-      } : undefined
+      port: 5173
     },
     define: {
       'process.env.VITE_API_URL': JSON.stringify(
