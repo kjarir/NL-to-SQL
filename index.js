@@ -12,6 +12,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 5173;
 
+console.log("Supabase DB URL:", process.env.SUPABASE_DB_URL);
+
+
 // CORS configuration
 app.use(cors({
   origin: 'http://localhost:5173',
