@@ -4,7 +4,7 @@ import cors from 'cors';
 import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Pool } from 'pg';
+import { createClient } from '@supabase/supabase-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,16 +34,11 @@ if (!GEMINI_API_KEY) {
 
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-// Initialize PostgreSQL pool
-const pool = new Pool({
-  connectionString: process.env.SUPABASE_DB_URL
-});
-
-// Test database connection
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
+// Initialize Supabase client
+const supabase = createClient(
+  'https://nhsblrznakczbtevrrrp.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oc2JscnpuYWtjemJ0ZXZrcnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDczNjQzNzUsImV4cCI6MjA2Mjk0MDM3NX0.e-9FykguZ52bWwPLkQLCBlICDcHOfMNgADty4LUMSY0'
+);
 
 // Function to get database schema
 async function getDatabaseSchema() {
@@ -59,8 +54,8 @@ async function getDatabaseSchema() {
       ORDER BY table_name, ordinal_position;
     `;
     
-    const result = await pool.query(query);
-    return result.rows;
+    const result = await supabase.from('information_schema.columns').select().eq('table_schema', 'public').order('table_name', { ascending: true }).order('ordinal_position', { ascending: true });
+    return result;
   } catch (error) {
     console.error('Error getting database schema:', error);
     throw new Error('Failed to connect to database. Please check your database connection.');
@@ -140,7 +135,7 @@ app.post('/api/ask', async (req, res) => {
 
     // Test database connection first
     try {
-      await pool.query('SELECT 1');
+      await supabase.from('information_schema.columns').select().eq('table_schema', 'public').order('table_name', { ascending: true }).order('ordinal_position', { ascending: true });
     } catch (dbError) {
       console.error('Database connection error:', dbError);
       return res.status(500).json({
@@ -177,16 +172,16 @@ app.post('/api/ask', async (req, res) => {
         console.log('SQL QUERY FROM GEMINI:', sql);
         
         try {
-          const { rows } = await pool.query(sql);
+          const { data } = await supabase.from('information_schema.columns').select().eq('table_name', sql.split(' ')[2]).eq('column_name', sql.split(' ')[3]);
           // Force chartData to always be { name, value }
-          let chartData = rows;
-          if (Array.isArray(rows) && rows.length > 0) {
-            const first = rows[0];
+          let chartData = data;
+          if (Array.isArray(data) && data.length > 0) {
+            const first = data[0];
             // Find the name/label key
             const nameKey = Object.keys(first).find(k => k.toLowerCase().includes('name')) || Object.keys(first)[0];
             // Find the first numeric value key that is not the name key
             const valueKey = Object.keys(first).find(k => k !== nameKey && typeof first[k] === 'number') || Object.keys(first)[1];
-            chartData = rows.map(row => ({
+            chartData = data.map(row => ({
               name: row[nameKey] ? String(row[nameKey]) : '',
               value: row[valueKey] || row.value || row.total || row.revenue || 0
             }));

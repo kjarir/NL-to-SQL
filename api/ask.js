@@ -1,8 +1,8 @@
 import { Pool } from 'pg';
 import axios from 'axios';
 
-// HARDCODED SECRETS (replace with your actual values)
-const SUPABASE_DB_URL = 'postgresql://postgres:jarirbobe@db.nhsblrznakczbtevrrrp.supabase.co:5432/postgres';
+// HARDCODED SECRETS (correct password and host)
+const SUPABASE_DB_URL = 'postgresql://postgres:jarirbob@db.nhsblrznakczbtevrrrp.supabase.co:5432/postgres';
 const GEMINI_API_KEY = 'AIzaSyCMHGtSEwUTGwEMskYFqx6l1Fy0bghdcao';
 
 // Initialize PostgreSQL pool with SSL configuration
